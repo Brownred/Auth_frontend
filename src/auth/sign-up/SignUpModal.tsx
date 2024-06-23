@@ -7,7 +7,7 @@ import ButtonNextUI from "../../components/button.js";
 import {SubmitHandler, useForm} from 'react-hook-form'
 import {z} from 'zod';
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Toast from "../../components/toast.js";
 
 
@@ -26,14 +26,28 @@ type FormFields = z.infer<typeof schema>
 
 export default function SignUpModal() {
 
-  const [isToastVisible, setToastVisible] = useState(true);
-  const [toastMessage, setToastMessage] = useState('');
+  const [isToastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('Testing 123');
+  const hasMounted = useRef(false);
 
   const showToast = (message: string) => {
+    setToastMessage(message)
     setToastVisible(true)
-    setToastMessage('testing 123')
-    setTimeout(() => setToastVisible(false), 300000)
   }
+
+
+
+useEffect(() => {
+    if (hasMounted.current) {
+      console.log('toast message changed')
+      setTimeout(()=> setToastVisible(false), 3000);
+      return  () => console.log('cleanup');
+      
+    } else {
+      hasMounted.current = true;
+    }
+  }, [isToastVisible]); // Watch both isToastVisible and toastMessage
+
   
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const {register, handleSubmit, formState: {errors, isSubmitting}} = useForm<FormFields>( {resolver: zodResolver(schema)});
@@ -41,7 +55,7 @@ export default function SignUpModal() {
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     try {
       
-      const response = await fetch(`https://fantastic-acorn-wqvgggrv7pgc99j4-4000.app.github.dev/api/auth/signup`, {
+      const response = await fetch(`http://localhost:4000/api/auth/signup`, {
         mode: "cors",
         method: 'POST',
         headers: {
@@ -50,11 +64,12 @@ export default function SignUpModal() {
         body: JSON.stringify(data)
       })
 
-      const responseData = await response.json()
       
-
+      
       if (!response.ok) {
-        if (responseData.message.includes('email')) {
+        const responseData = await response.json()
+
+        if (responseData.email.includes('email')) {
           showToast('Email is already in use')
         } else {
           showToast('An error occured, please try again later')
@@ -170,7 +185,7 @@ export default function SignUpModal() {
           )}
         </ModalContent>
       </Modal>
-      <Toast message={toastMessage} isVisible={isToastVisible} onClose={() => setToastVisible(false)} />
+      {isToastVisible ? (<Toast message={toastMessage} isVisible={isToastVisible} onClose={() => setToastVisible(false)} />) : null}
     </>
   );
 }
