@@ -37,7 +37,7 @@ export default function SignUpModal() {
 
 
 
-useEffect(() => {
+  useEffect(() => {
     if (hasMounted.current) {
       console.log('toast message changed')
       setTimeout(()=> setToastVisible(false), 3000);

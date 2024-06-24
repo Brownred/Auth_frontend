@@ -10,7 +10,7 @@ const Toast: React.FC<ToastProps> = ({ message, isVisible, onClose }) => {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed z-[9999] top-5 right-10 -translate-x-1/2 bg-black text-white px-3 py-5 rounded-md cursor-pointer animate-fadeInOut" onClick={onClose}>
+    <div className="fixed z-[9999] top-5 right-10 -translate-x-1/2 bg-red-500 text-white px-3 py-5 rounded-md cursor-pointer animate-fadeInOut" onClick={onClose}>
       {message}
     </div>
   );
