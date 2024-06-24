@@ -63,8 +63,6 @@ export default function SignUpModal() {
         },
         body: JSON.stringify(data)
       })
-
-      
       
       if (!response.ok) {
         const responseData = await response.json()

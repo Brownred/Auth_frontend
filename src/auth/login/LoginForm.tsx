@@ -6,8 +6,11 @@ import { MailIcon } from "./inputs/MailIcon"
 import { useForm, SubmitHandler } from 'react-hook-form';
 import {z} from 'zod'
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import Toast from "../../components/toast";
+
+
 
 const schema =z.object({
   email: z.string().email({message: 'email is not valid'}),
@@ -22,6 +25,28 @@ const LoginForm = () => {
 
   const [isVisible, setIsVisible] = useState(false);
   const toggleVisibility = () => setIsVisible(!isVisible);
+  const [isToastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('Testing 123');
+  const hasMounted = useRef(false);
+
+  const showToast = (message: string) => {
+    setToastMessage(message)
+    setToastVisible(true)
+  }
+
+
+
+  useEffect(() => {
+    if (hasMounted.current) {
+      console.log('toast message changed')
+      setTimeout(()=> setToastVisible(false), 3000);
+      return  () => console.log('cleanup');
+      
+    } else {
+      hasMounted.current = true;
+    }
+  }, [isToastVisible]); // Watch both isToastVisible and toastMessage
+
 
   const onSubmit: SubmitHandler<formFields> = async (data) => {
     try {
@@ -33,7 +58,16 @@ const LoginForm = () => {
         body: JSON.stringify(data)
       })
 
-      console.log(response)
+      if (!response.ok) {
+        const responseData = await response.json()
+        
+        if (responseData.credentials.includes("match")) {
+          showToast('Email and password does not match')
+        } else {
+          showToast('An error occured, please try again later')
+        }
+
+      }
     } catch (error) {
       console.error(error)
     }
@@ -42,6 +76,7 @@ const LoginForm = () => {
 
   return (
     <div>
+    {isToastVisible ? (<Toast message={toastMessage} isVisible={isToastVisible} onClose={() => setToastVisible(false)} />) : null}
       <div className="bg-signup relative flex items-center justify-center bg-center h-screen">
         <div className="absolute inset-0 backdrop-blur-sm" />
         <div className="bg-white relative rounded-3xl p-7 -mt-8">
